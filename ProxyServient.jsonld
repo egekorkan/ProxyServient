@@ -1,0 +1,123 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:9000/",
+    "name": "ProxyServient",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "repositoryAddress",
+            "outputData": {
+                "type": "string",
+                "format": "url"
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "repositoryAddress",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "makeMePublic",
+            "inputData": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "object"
+                    },
+                    "publicTime": {
+                        "type": "number",
+                        "minimum": 60,
+                        "default": 86400
+                    }
+                },
+                "required": ["description"],
+                "additionalProperties": false
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Created",
+                    "AlreadyExists",
+                    "RepositoryError",
+                    "ProxyServientError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "makeMePublic",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "deleteMe",
+            "inputData": {
+                "type": "string"
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Deleted",
+                    "BadRequest",
+                    "RepositoryError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "deleteMe",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "updateMe",
+            "inputData": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "object"
+                    },
+                    "publicTime": {
+                        "type": "number",
+                        "minimum": 60,
+                        "default": 86400
+                    }
+                },
+                "required": ["description"],
+                "additionalProperties": false
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Updated",
+                    "BadRequest",
+                    "RepositoryError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "updateMe",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

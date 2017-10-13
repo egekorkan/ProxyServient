@@ -1,0 +1,127 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:8080/",
+    "name": "MyTemperatureThing1_SM",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "currentState",
+            "outputData": {
+                "type": "object",
+                "properties": {
+                    "state":{
+                        "type": "string"
+                    },
+                    "transitions":{
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minItems": 1
+                        }
+                    }
+                },
+                "required": [
+                    "state",
+                    "transitions"
+                ]
+            },
+            "writable": false,
+            "link": [
+                {
+                    "href": "currentState",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "roomTemperature",
+            "outputData": {
+                "type": "number",
+                "maximum" : 40
+            },
+            "writable": false,
+            "link": [
+                {
+                    "href": "roomTemperature",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "askedTemperature",
+            "outputData": {
+                "type": "number",
+                "maximum" : 40
+            },
+            "writable": true,
+            "transitions" : [
+                {
+                    "rel" : "reinitialize",
+                    "href":"initiate",
+                    "condition" :"askedTemperature == roomTemperature "
+                }
+            ],
+            "link": [
+                {
+                    "href": "askedTemperature",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action",
+                "Initial"
+            ],
+            "name": "initiate",
+            "outputData": {
+                "type": "boolean"
+            },
+            "transitions" : [
+                {
+                    "rel":"changeTemperature",
+                    "href" : "askedTemperature"
+                },
+                {
+                    "rel":"final",
+                    "href" : "turnOff"
+                }
+
+            ],
+            "link": [
+                {
+                    "href": "initiate",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action",
+                "Final"
+            ],
+            "name": "turnOff",
+            "transitions" : [
+            ],
+            "link": [
+                {
+                    "href": "turnOff",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

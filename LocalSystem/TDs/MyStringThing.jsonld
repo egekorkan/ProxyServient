@@ -1,0 +1,28 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:8081/",
+    "name": "MyStringThing",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "myStr",
+            "outputData": {
+                "type": "string"
+            },
+            "writable": false,
+            "link": [
+                {
+                    "href": "myStr",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

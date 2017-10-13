@@ -1,0 +1,28 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:9004/",
+    "name": "MyBooleanThing",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "myBool",
+            "outputData": {
+                "type": "boolean"
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "myBool",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

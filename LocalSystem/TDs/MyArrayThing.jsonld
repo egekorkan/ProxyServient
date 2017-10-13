@@ -1,0 +1,47 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:9002/",
+    "name": "MyArrayThing",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "myArray",
+            "outputData": {
+                "type": "array",
+                "items": [
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "x": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                ]
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "myArray",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

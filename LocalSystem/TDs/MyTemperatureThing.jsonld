@@ -1,0 +1,46 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:9001/",
+    "name": "MyTemperatureThing",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "temperature",
+            "outputData": {
+                "type": "number"
+            },
+            "writable": false,
+            "link": [
+                {
+                    "href": "temperature",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "test1",
+            "inputData":{
+                "type":"number"
+            },
+            "outputData": {
+                "type": "number"
+            },
+            "link": [
+                {
+                    "href": "test1",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,119 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "name": "MyTemperatureThing2",
+    "base": "http://localhost:8080/",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "temperature",
+            "outputData": {
+                "type": "number",
+                "minimum":0,
+                "maximum": 122
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "temperature",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "increase",
+            "inputData": {
+                "type": "number",
+                "maximum":5,
+                "minimum":0
+            },
+            "outputData": {
+                "type": "boolean"
+            },
+            "link": [
+                {
+                    "href": "increase",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action",
+                "Initial"
+            ],
+            "name": "initiate",
+            "link": [
+                {
+                    "href": "initiate",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "configuration",
+            "outputData": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "Celcius",
+                            "Fahreneit"
+                        ]
+                    },
+                    "updateInterval": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "type",
+                    "updateInterval"
+                ],
+                "additionalProperties": false
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "configuration",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "decreaseGradually",
+            "inputData": {
+                "type": "array",
+                "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "minItems": 1,
+                    "maxItems": 5
+                }
+            },
+            
+            "link": [
+                {
+                    "href": "decreaseGradually",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}
