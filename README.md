@@ -2,7 +2,7 @@ This servient makes a WoT Thing's Thing Description online, in a repository of c
 
 ## Installation Requirements:
 
-You need to install [node-wot](https://github.com/thingweb/node-wot) in order to use the Proxy Servient. 
+You need to install [node-wot](https://github.com/thingweb/node-wot) in order to run the Proxy Servient. 
 
 Then open ProxyServient.js and modify the module imports according to the installation location of your node-wot. These are found in the very beginning and marked in bold below:
 
@@ -49,6 +49,13 @@ You can delete a TD by sending the name using the *deleteMe* action.
 
 While using these interactions, you can see the TDs that are public by using the property *publicDescriptions*. If your Thing's name is already in this list, use the *updateMe* action instead of *makeMePublic* action.
 
+# NO GOs
+You cannot update or delete before making a TD public. If you try you will get "NotPublic" message.
+
+You cannot make two TDs with the same name public. If you try you will get "AlreadyExists" message.
+
+If another client modifies the Thing Description repository (deleting your TD for example), you will get a "RepositoryError" when you try to update or delete that TD.
+
 
 ## TO DOs
 
@@ -56,4 +63,4 @@ Add CoAP functionality
 
 Lifetime of a TD
 
-Check if the gateway and Thing have the same protocols => This is because if we put a gateway address with CoAP to a Thing that doesn't support CoAP, we have problems!
+?? Check if the gateway and Thing have the same protocols => This is because if we put a gateway address with CoAP to a Thing that doesn't support CoAP, we have problems!

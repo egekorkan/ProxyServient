@@ -36,154 +36,101 @@ WoT.createFromDescription(td).then(function (proxyThing) {
     proxyThing.onUpdateProperty("gatewayAddress", function (oldAddress, newAddress) {
         gatewayAddress = newAddress;
     });
+
     //handling action to make a TD online
-	/*
-"name": "makeMePublic",
-            "inputData": {
-                "type": "object",
-                "properties": {
-                    "address": {
-                        "type": "string"
-                    },
-                    "publicTime": {
-                        "type": "number",
-                        "minimum": 60,
-                        "default": 86400
-                    }
-                },
-                "required": ["address"],
-                "additionalProperties": false
-            },
-            "outputData": {
-                "type": "string",
-                "enum": [
-                    "Created",
-                    "AlreadyExists",
-                    "RepositoryError",
-                    "ProxyServientError"
-                ]
-            },
-            */
     proxyThing.onInvokeAction("makeMePublic", function (inputData) {
-        // inputData has the TD, getting it
-        var td = inputData["description"];
-        console.log("gotten description is ", JSON.stringify(td, 2));
+        return new Promise(function (resolve, reject) {
+            // inputData has the TD, getting it
+            var td = inputData["description"];
+            var descriptionId = findTdId(td.name);
 
-        // posting the TD to repository address
-        var address = repositoryAddress + "/td";
-        // change its IP addresses that were local with the IP of the repo
-        td = transformTdPublic(td, gatewayAddress);
-        console.log("New TD to post  is ", JSON.stringify(td, 2));
-        postTd(address, td).then(function (location) {
+            // if the id didnt match, it is a good sign:
+            if (descriptionId === -1) {
 
-            // get the id assigned by the repo and store it
-            // this value is given in the header of the response
-            var tdLocation = location;
-            var thingName = td.name;
-            var toRepo = { [thingName]: tdLocation }
+                // posting the TD to repository address
+                var address = repositoryAddress + "/td";
+                // change its IP addresses that were local with the IP of the repo
+                td = transformTdPublic(td, gatewayAddress);
 
-            // it is stored in an array in this servient. This is done to keep a record of TDs in order to update or delete them later
-            repoIds.push(toRepo);
-            
-        }).catch(function (error) {
-            console.log("Couldnt post TD to repo, ", error)
-            // returning a response value
-        });
-        proxyThing.setProperty("publicDescriptions",repoIds);
-        console.log("Currently managed TDs are ", repoIds);
+                postTd(address, td).then(function (location) {
+
+                    // get the id assigned by the repo and store it
+                    // this value is given in the header of the response
+                    var tdLocation = location;
+                    var thingName = td.name;
+                    var toRepo = { [thingName]: tdLocation }
+
+                    // it is stored in an array in this servient. This is done to keep a record of TDs in order to update or delete them later
+                    repoIds.push(toRepo);
+                    resolve("Created")
+
+                }).catch(function (error) {
+                    console.log("Couldnt post TD to repo, ", error)
+                    resolve(error);
+                });
+            } else {
+                resolve("AlreadyExists");
+            }
+            proxyThing.setProperty("publicDescriptions", repoIds);
+            console.log("Currently managed TDs are ", repoIds);
+        })
     });
 
 
     //handling action to update an online TD with a local one
-    /*
-                "name": "updateMe",
-                "inputData": {
-                    "type": "object",
-                    "properties": {
-                        "address": {
-                            "type": "string"
-                        },
-                        "publicTime": {
-                            "type": "number",
-                            "minimum": 60,
-                            "default": 86400
-                        }
-                    },
-                    "required": ["address"],
-                    "additionalProperties": false
-                },
-                "outputData": {
-                    "type": "string",
-                    "enum": [
-                        "Updated",
-                        "BadRequest",
-                        "RepositoryError",
-                        "NotPublicYet"
-                    ]
-                },*/
     proxyThing.onInvokeAction("updateMe", function (inputData) {
-        var td = inputData["description"];
-        // put its TD in the repo
-        var address = repositoryAddress;
-        // first the id returned by the repo in the makeMePublic request needs to be found
-        // according to the id stored, the request is composed
-        var descriptionId = findTdId(td.name);
+        return new Promise(function (resolve, reject) {
+            var td = inputData["description"];
 
-        // if the id didnt match:
-        if (descriptionId === -1) {
-            console.log("Non existing TD");
-            // return "NotPublicYet";
-        } else {
-            // change its IP addresses that were local with the IP of the repo
-            td = transformTdPublic(td, gatewayAddress);
-            console.log("New TD to update is ", JSON.stringify(td, 2));
-            // put the new TD in the repository
-            updateTd(address + descriptionId, td).then(function (res) {
-                console.log("Update Succesful");
-                // return Updated
-            }).catch(function (err) {
-                console.log("Update NOT Succesful, error code ", err);
-                // return the error code
-            });
-        }
-        proxyThing.setProperty("publicDescriptions",repoIds);
-        console.log("Currently managed TDs are ", repoIds);
+            // put its TD in the repo
+            var address = repositoryAddress;
+
+            // first the id returned by the repo in the makeMePublic request needs to be found
+            // according to the id stored, the request is composed
+            var descriptionId = findTdId(td.name);
+
+            // if the id didnt match:
+            if (descriptionId === -1) {
+                console.log("Non existing TD");
+                resolve("NotPublic");
+            } else {
+
+                // change its IP addresses that were local with the IP of the repo
+                td = transformTdPublic(td, gatewayAddress);
+
+                // put the new TD in the repository
+                updateTd(address + descriptionId, td).then(function (res) {
+                    console.log("Update Succesful");
+                    resolve("Updated")
+                }).catch(function (err) {
+                    console.log("Update NOT Succesful, error code ", err);
+                    resolve(err);
+                });
+            }
+            proxyThing.setProperty("publicDescriptions", repoIds);
+            console.log("Currently managed TDs are ", repoIds);
+        });
     });
 
-
-    //handling action to delete an online TD
-    /*
-            "name": "deleteMe",
-                "inputData": {
-                    "type": "string"
-                },
-                "outputData": {
-                    "type": "string",
-                    "enum": [
-                        "Deleted",
-                        "BadRequest",
-                        "RepositoryError",
-                        "NotPublicYet"
-                    ]
-                },
-                */
     proxyThing.onInvokeAction("deleteMe", function (name) {
-        var address = repositoryAddress;
-        var descriptionId = findTdId(name);
-        if (descriptionId === -1) {
-            // return "NotPublicYet";
-        } else {
-            deleteTd(address + descriptionId).then(function (res) {
-                var indexOfTd = repoIds.findIndex(i => i[name] === descriptionId);
-                repoIds.splice(indexOfTd, 1);
-                // return Deleted
-            }).catch(function (err) {
-                console.log("Delete NOT Succesful, error code ", err);
-                // return the error code
-            });
-        }
+        return new Promise(function (resolve, reject) {
+            var descriptionId = findTdId(name);
+            if (descriptionId === -1) {
+                resolve("NotPublic");
+            } else {
+                var address = repositoryAddress;
+                deleteTd(address + descriptionId).then(function (res) {
+                    var indexOfTd = repoIds.findIndex(i => i[name] === descriptionId);
+                    repoIds.splice(indexOfTd, 1);
+                    resolve("Deleted");
+                }).catch(function (err) {
+                    console.log("Delete NOT Succesful, error code ", err);
+                    resolve(err);
+                });
+            }
+        });
     });
-    proxyThing.setProperty("publicDescriptions",repoIds);
+    proxyThing.setProperty("publicDescriptions", repoIds);
     console.log("Currently managed TDs are ", repoIds);
 });
 
@@ -225,6 +172,7 @@ var postTd = function (repositoryAddress, td) {
         if (td_byte) {
             options.headers = { 'Content-Type': td_byte.mediaType, 'Content-Length': td_byte.body.byteLength };
         }
+
         // do the post and get the response
         var req = http.request(options, function (res) {
             console.log("HttpClient received " + res.statusCode + " from " + repositoryAddress);
@@ -254,7 +202,7 @@ var postTd = function (repositoryAddress, td) {
         });
         req.on('error', function (err) {
             console.error("Received Error");
-            return reject(err);
+            return reject("ProxyServientError");
         });
 
         // where the actual write is done
@@ -288,7 +236,7 @@ var updateTd = function (repositoryAddress, td) {
                 reject("RepositoryError");
             }
         });
-        req.on('error', function (err) { return reject(err); });
+        req.on('error', function (err) { return reject("ProxyServientError"); });
         req.write(td_byte.body);
         req.end();
     });
@@ -317,7 +265,7 @@ var deleteTd = function (uri) {
                 reject("RepositoryError");
             }
         });
-        req.on('error', function (err) { return reject(err); });
+        req.on('error', function (err) { return reject("ProxyServientError"); });
         req.end();
     });
 }
@@ -330,6 +278,7 @@ var transformTdPublic = function (td, publicAddress) {
         base = transformLink(base, publicAddress)
         td.base = base;
     } catch (error) {
+        
         //no problem, base is optional
     }
 
