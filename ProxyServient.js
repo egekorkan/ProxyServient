@@ -12,6 +12,7 @@ var fs = require("fs");
 //some constants
 var tdName = "ProxyServient";
 var repositoryAddress = "http://localhost:8080";
+var gatewayAddress = "http://localhost:8081";
 var repoIds = []; // tdname and its associated id
 
 //getting the TD 
@@ -28,7 +29,13 @@ WoT.createFromDescription(td).then(function (proxyThing) {
 
     // setting repository address
     proxyThing.setProperty("repositoryAddress", repositoryAddress);
+    proxyThing.onUpdateProperty("repositoryAddress", function (oldAddress, newAddress) {
+        repositoryAddress = newAddress;
+    });
 
+    proxyThing.onUpdateProperty("gatewayAddress", function (oldAddress, newAddress) {
+        gatewayAddress = newAddress;
+    });
     //handling action to make a TD online
 	/*
 "name": "makeMePublic",
@@ -60,31 +67,32 @@ WoT.createFromDescription(td).then(function (proxyThing) {
     proxyThing.onInvokeAction("makeMePublic", function (inputData) {
         // inputData has the TD, getting it
         var td = inputData["description"];
-        //console.log("description is ", td);
+        console.log("gotten description is ", JSON.stringify(td, 2));
 
+        // posting the TD to repository address
+        var address = repositoryAddress + "/td";
         // change its IP addresses that were local with the IP of the repo
+        td = transformTdPublic(td, gatewayAddress);
+        console.log("New TD to post  is ", JSON.stringify(td, 2));
+        postTd(address, td).then(function (location) {
 
-        // if the repository address has been modified by the user
-        proxyThing.getProperty("repositoryAddress").then(function (address) {
-            // posting the TD to repository address
-            address = address + "/td";
-            postTd(address, td).then(function (location) {
+            // get the id assigned by the repo and store it
+            // this value is given in the header of the response
+            var tdLocation = location;
+            var thingName = td.name;
+            var toRepo = { [thingName]: tdLocation }
 
-                // get the id assigned by the repo and store it
-                // this value is given in the header of the response
-                var tdLocation = location;
-                var thingName = td.name;
-                var toRepo = { [thingName]: tdLocation }
-
-                // it is stored in an array in this servient. This is done to keep a record of TDs in order to update or delete them later
-                repoIds.push(toRepo);
-                console.log("Currently managed TDs are ", repoIds);
-            }).catch(function (error) {
-                console.log("Couldnt post TD to repo, ", error)
-                // returning a response value
-            });
+            // it is stored in an array in this servient. This is done to keep a record of TDs in order to update or delete them later
+            repoIds.push(toRepo);
+            
+        }).catch(function (error) {
+            console.log("Couldnt post TD to repo, ", error)
+            // returning a response value
         });
+        proxyThing.setProperty("publicDescriptions",repoIds);
+        console.log("Currently managed TDs are ", repoIds);
     });
+
 
     //handling action to update an online TD with a local one
     /*
@@ -115,32 +123,33 @@ WoT.createFromDescription(td).then(function (proxyThing) {
                 },*/
     proxyThing.onInvokeAction("updateMe", function (inputData) {
         var td = inputData["description"];
-
-        // change its IP addresses that were local with the IP of the repo
-
         // put its TD in the repo
-        proxyThing.getProperty("repositoryAddress").then(function (address) {
-            // first the id returned by the repo in the makeMePublic request needs to be found
-            // according to the id stored, the request is composed
-            var descriptionId = findTdId(td.name);
+        var address = repositoryAddress;
+        // first the id returned by the repo in the makeMePublic request needs to be found
+        // according to the id stored, the request is composed
+        var descriptionId = findTdId(td.name);
 
-            // if the id didnt match:
-            if (descriptionId === -1) {
-                console.log("Non existing TD");
-                // return "NotPublicYet";
-            } else {
-                
-                // put the new TD in the repository
-                updateTd(address + descriptionId, td).then(function (res) {
-                    console.log("Update Succesful");
-                    // return Updated
-                }).catch(function(err){
-                    console.log("Update NOT Succesful, error code ",err);
-                    // return the error code
-                });
-            }
-        });
+        // if the id didnt match:
+        if (descriptionId === -1) {
+            console.log("Non existing TD");
+            // return "NotPublicYet";
+        } else {
+            // change its IP addresses that were local with the IP of the repo
+            td = transformTdPublic(td, gatewayAddress);
+            console.log("New TD to update is ", JSON.stringify(td, 2));
+            // put the new TD in the repository
+            updateTd(address + descriptionId, td).then(function (res) {
+                console.log("Update Succesful");
+                // return Updated
+            }).catch(function (err) {
+                console.log("Update NOT Succesful, error code ", err);
+                // return the error code
+            });
+        }
+        proxyThing.setProperty("publicDescriptions",repoIds);
+        console.log("Currently managed TDs are ", repoIds);
     });
+
 
     //handling action to delete an online TD
     /*
@@ -158,24 +167,26 @@ WoT.createFromDescription(td).then(function (proxyThing) {
                     ]
                 },
                 */
-    proxyThing.onInvokeAction("deleteMe",function(name){
-        proxyThing.getProperty("repositoryAddress").then(function (address) {
-            var descriptionId = findTdId(name);
-            if (descriptionId === -1) {
-                // return "NotPublicYet";
-            } else {
-                deleteTd(address + descriptionId).then(function (res) {
-                    var indexOfTd = repoIds.findIndex(i => i[name] === descriptionId);
-                    repoIds.splice(indexOfTd,1);
-                    // return Deleted
-                }).catch(function(err){
-                    console.log("Delete NOT Succesful, error code ",err);
-                    // return the error code
-                });
-            }
-        });
+    proxyThing.onInvokeAction("deleteMe", function (name) {
+        var address = repositoryAddress;
+        var descriptionId = findTdId(name);
+        if (descriptionId === -1) {
+            // return "NotPublicYet";
+        } else {
+            deleteTd(address + descriptionId).then(function (res) {
+                var indexOfTd = repoIds.findIndex(i => i[name] === descriptionId);
+                repoIds.splice(indexOfTd, 1);
+                // return Deleted
+            }).catch(function (err) {
+                console.log("Delete NOT Succesful, error code ", err);
+                // return the error code
+            });
+        }
     });
+    proxyThing.setProperty("publicDescriptions",repoIds);
+    console.log("Currently managed TDs are ", repoIds);
 });
+
 
 // copied from node wot. This parses a uri string to get the parameters
 var uriToOptions = function (uri) {
@@ -224,17 +235,17 @@ var postTd = function (repositoryAddress, td) {
                 console.log("Rejecting with 500");
                 reject("RepositoryError");
 
-            // 400 return code means the request was poorly written. This can be because of invalid TD, an already existing TD or bad uri
+                // 400 return code means the request was poorly written. This can be because of invalid TD, an already existing TD or bad uri
             } else if (res.statusCode == 400) {
                 console.log("Rejecting with 400");
                 reject("BadRequest");
 
-            // 201 is a succesful request
+                // 201 is a succesful request
             } else if (res.statusCode == 201) {
                 console.log("Resolving with 201");
                 resolve(res.headers.location);
 
-            // in case there is another problem
+                // in case there is another problem
             } else {
                 console.log("something else received");
                 reject("RepositoryError");
@@ -247,7 +258,7 @@ var postTd = function (repositoryAddress, td) {
         });
 
         // where the actual write is done
-        if (td_byte) { req.write(td_byte.body);}
+        if (td_byte) { req.write(td_byte.body); }
         req.end();
     });
 }
@@ -309,8 +320,45 @@ var deleteTd = function (uri) {
         req.on('error', function (err) { return reject(err); });
         req.end();
     });
+}
+var transformTdPublic = function (td, publicAddress) {
 
-    var transformTdPublic = function(td,repositoryAddress){
-
+    // change the base. Changing occurs only between .// and the next /
+    // for example http://localhost:9004/MyBooleanThing will become http://myrepo.com/MyBooleanThing
+    try {
+        var base = td.base;
+        base = transformLink(base, publicAddress)
+        td.base = base;
+    } catch (error) {
+        //no problem, base is optional
     }
+
+    //change each href
+    var interactions = td.interaction;
+    interactions.forEach(function (interaction, index) {
+        var links = interaction.link;
+        links.forEach(function (link, index2) {
+            var href = link.href;
+            if (href.indexOf("://") > -1) {
+                href = transformLink(href, publicAddress);
+            }
+            link.href = href;
+            links[index2] = link;
+        });
+        interaction.link = links;
+        interactions[index] = interaction;
+    });
+    td.interaction = interactions;
+    return td;
+}
+
+var transformLink = function (link, address) {
+    var startLocation = link.indexOf("://") + 3;
+    var endLocation = link.indexOf("/", startLocation);
+    var localAddress = link.substring(startLocation, endLocation);
+
+    var startLocationRepo = address.indexOf("://") + 3;
+    var trimmedPublicAddress = address.slice(startLocationRepo);
+    link = link.replace(localAddress, trimmedPublicAddress);
+    return link;
 }

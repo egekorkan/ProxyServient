@@ -30,12 +30,15 @@ After this the ProxyServient should be running.
 
 *The file formats to use are given by the Thing Description of the ProxyServient in ProxyServient.jsonld*
 
-ProxyServient uses the actions and properties as defined by WoT. Currently there are 3 actions and 1 property to interact with.
+ProxyServient uses the actions and properties as defined by WoT. Currently there are 3 actions and 3 properties to interact with.
 
 The Thing Directory's address should be written into the *repositoryAddress* property. It defaults to localhost 
-port 8080 with http protocol. 
+port 8080 with http protocol. **You shouldn't put a / at the very end of the uri.**
 
 **Currently there is only HTTP protocol supported.**
+
+The gateway address used for communicating with a Thing from the outside of the local system, is at the property called *gatewayAddress*. It defaults to http://localhost:8081 . **Similarly, you shouldn't put a / at the very end of the uri.**
+
 
 Send the TD by executing the action *makeMePublic*. You have to send the TD with this action. The TD will be available online in the repository.
 
@@ -44,11 +47,13 @@ changing the name. However, this is only possible in a single instance of the pr
 
 You can delete a TD by sending the name using the *deleteMe* action.
 
+While using these interactions, you can see the TDs that are public by using the property *publicDescriptions*. If your Thing's name is already in this list, use the *updateMe* action instead of *makeMePublic* action.
 
-## TO DO
+
+## TO DOs
 
 Add CoAP functionality
 
-Address modification
-
 Lifetime of a TD
+
+Check if the gateway and Thing have the same protocols => This is because if we put a gateway address with CoAP to a Thing that doesn't support CoAP, we have problems!

@@ -27,6 +27,44 @@
         },
         {
             "@type": [
+                "Property"
+            ],
+            "name": "gatewayAddress",
+            "outputData": {
+                "type": "string",
+                "format": "url"
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "gatewayAddress",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "publicDescriptions",
+            "outputData": {
+                "type": "array",
+                "items": [
+                    {
+                        "type": "object"
+                    }
+                ]
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "publicDescriptions",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
                 "Action"
             ],
             "name": "makeMePublic",
@@ -42,7 +80,9 @@
                         "default": 86400
                     }
                 },
-                "required": ["description"],
+                "required": [
+                    "description"
+                ],
                 "additionalProperties": false
             },
             "outputData": {
@@ -101,7 +141,9 @@
                         "default": 86400
                     }
                 },
-                "required": ["description"],
+                "required": [
+                    "description"
+                ],
                 "additionalProperties": false
             },
             "outputData": {
