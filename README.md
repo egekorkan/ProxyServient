@@ -16,10 +16,9 @@ var http_server_1 = require("**/home/eko/Code**/node-wot/packages/node-wot-proto
 
 var node_wot_content_serdes_1 = require("node-wot-content-serdes");
 
-This will allow the ProxyServient to run properly but if you need to run also the Thing Description repository you can 
-install it [here](https://github.com/thingweb/thingweb-directory).
+This will allow the ProxyServient to run properly but if you need to run also the Thing Description repository you can install it [here](https://github.com/thingweb/thingweb-directory).
 
-You can also read the readme to understand how the ProxyServient works.
+You can also read their readme to understand how the ProxyServient works.
 
 ## Running ProxyServient
 
@@ -31,8 +30,7 @@ After this the ProxyServient should be running.
 
 *The file formats to use are given by the Thing Description of the ProxyServient in ProxyServient.jsonld*
 
-ProxyServient uses the actions and properties as defined by WoT. Currently there are 3 actions and 1 property to 
-interact with.
+ProxyServient uses the actions and properties as defined by WoT. Currently there are 3 actions and 1 property to interact with.
 
 The Thing Directory's address should be written into the *repositoryAddress* property. It defaults to localhost 
 port 8080 with http protocol. 

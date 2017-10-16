@@ -25,12 +25,7 @@ srv.addClientFactory(new http_client_factory_1.default());
 var WoT = srv.start();
 
 WoT.createFromDescription(td).then(function (proxyThing) {
-    //console.log(srv.clientFactories);
-    repoClient = srv.getClientFor("http");
-    // repoClient.readResource(repositoryAddress).then(function(data){
-    //     console.log(data);
 
-    // });
     // setting repository address
     proxyThing.setProperty("repositoryAddress", repositoryAddress);
 
@@ -63,27 +58,34 @@ WoT.createFromDescription(td).then(function (proxyThing) {
             },
             */
     proxyThing.onInvokeAction("makeMePublic", function (inputData) {
-        //console.log(inputData);
+        // inputData has the TD, getting it
         var td = inputData["description"];
-        console.log("description is ", td);
+        //console.log("description is ", td);
+
+        // change its IP addresses that were local with the IP of the repo
+
+        // if the repository address has been modified by the user
         proxyThing.getProperty("repositoryAddress").then(function (address) {
-            address = address + "/td"
-            console.info("posting to ", address);
+            // posting the TD to repository address
+            address = address + "/td";
             postTd(address, td).then(function (location) {
+
                 // get the id assigned by the repo and store it
+                // this value is given in the header of the response
                 var tdLocation = location;
                 var thingName = td.name;
                 var toRepo = { [thingName]: tdLocation }
+
+                // it is stored in an array in this servient. This is done to keep a record of TDs in order to update or delete them later
                 repoIds.push(toRepo);
-                //console.log(tdName, " ",tdLocation);
-                console.log("TDs pushed are ", repoIds);
+                console.log("Currently managed TDs are ", repoIds);
             }).catch(function (error) {
                 console.log("Couldnt post TD to repo, ", error)
+                // returning a response value
             });
         });
-        //});
     });
-    // return a response accordingly
+
     //handling action to update an online TD with a local one
     /*
                 "name": "updateMe",
@@ -113,25 +115,28 @@ WoT.createFromDescription(td).then(function (proxyThing) {
                 },*/
     proxyThing.onInvokeAction("updateMe", function (inputData) {
         var td = inputData["description"];
-        console.log("description is ", td);
+
         // change its IP addresses that were local with the IP of the repo
 
         // put its TD in the repo
         proxyThing.getProperty("repositoryAddress").then(function (address) {
+            // first the id returned by the repo in the makeMePublic request needs to be found
+            // according to the id stored, the request is composed
             var descriptionId = findTdId(td.name);
-            console.log("description id is ", descriptionId)
+
+            // if the id didnt match:
             if (descriptionId === -1) {
-                console.log("non existing TD")
-                return "NotPublicYet";
+                console.log("Non existing TD");
+                // return "NotPublicYet";
             } else {
-                console.log("something");
-                console.log("id in the repository is ", descriptionId);
-                //var curId = 
-                console.info("posting to ", address);
+                
+                // put the new TD in the repository
                 updateTd(address + descriptionId, td).then(function (res) {
                     console.log("Update Succesful");
+                    // return Updated
                 }).catch(function(err){
                     console.log("Update NOT Succesful, error code ",err);
+                    // return the error code
                 });
             }
         });
@@ -148,34 +153,31 @@ WoT.createFromDescription(td).then(function (proxyThing) {
                     "enum": [
                         "Deleted",
                         "BadRequest",
-                        "RepositoryError"
+                        "RepositoryError",
+                        "NotPublicYet"
                     ]
                 },
                 */
     proxyThing.onInvokeAction("deleteMe",function(name){
         proxyThing.getProperty("repositoryAddress").then(function (address) {
             var descriptionId = findTdId(name);
-            console.log("description id is ", descriptionId)
             if (descriptionId === -1) {
-                console.log("non existing TD")
-                return "NotPublicYet";
+                // return "NotPublicYet";
             } else {
-                console.log("something");
-                console.log("id in the repository is ", descriptionId);
-                
                 deleteTd(address + descriptionId).then(function (res) {
                     var indexOfTd = repoIds.findIndex(i => i[name] === descriptionId);
                     repoIds.splice(indexOfTd,1);
-                    console.log("Delete Succesful");
-                    console.log("TDs are ", repoIds);
+                    // return Deleted
                 }).catch(function(err){
                     console.log("Delete NOT Succesful, error code ",err);
+                    // return the error code
                 });
             }
         });
     });
 });
 
+// copied from node wot. This parses a uri string to get the parameters
 var uriToOptions = function (uri) {
     var requestUri = url.parse(uri);
     var options = {};
@@ -185,42 +187,54 @@ var uriToOptions = function (uri) {
     options.path = requestUri.path;
     return options;
 };
+
+// this function finds the id of the Td based on the name
 var findTdId = function (tdName) {
+    // filter the array to find a matching pair 
     var matchedPair = repoIds.filter(pair => {
         return Object.keys(pair).indexOf(tdName) > -1;
     });
-    console.log("matche pair is ", matchedPair)
+    // return the id if there is a match, -1 otherwise
     if (matchedPair.length > 0) {
         return matchedPair[0][tdName];
     } else {
         return -1;
     }
-
 }
+
+// this function does a simple POST  request but it returns id given by the repository.
 var postTd = function (repositoryAddress, td) {
     return new Promise(function (resolve, reject) {
-        console.log("in post method", JSON.stringify(td, 4));
+        // convert the TD to bytes
         var td_byte = node_wot_content_serdes_1.default.valueToBytes(td, "application/json");
+
+        // parse the uri
         var options = uriToOptions(repositoryAddress);
         options.method = 'POST';
         if (td_byte) {
             options.headers = { 'Content-Type': td_byte.mediaType, 'Content-Length': td_byte.body.byteLength };
         }
-        console.log("options is:", options);
-        console.log("HttpClient sending POST to " + repositoryAddress);
+        // do the post and get the response
         var req = http.request(options, function (res) {
             console.log("HttpClient received " + res.statusCode + " from " + repositoryAddress);
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
-            //some if clause is necessary here to detect other response types
+
+            // 500 return code means the repository had a problem in itself, there is nothing wrong with our request
             if (res.statusCode == 500) {
                 console.log("Rejecting with 500");
                 reject("RepositoryError");
+
+            // 400 return code means the request was poorly written. This can be because of invalid TD, an already existing TD or bad uri
             } else if (res.statusCode == 400) {
                 console.log("Rejecting with 400");
                 reject("BadRequest");
+
+            // 201 is a succesful request
             } else if (res.statusCode == 201) {
-                console.log("resolving with 201");
+                console.log("Resolving with 201");
                 resolve(res.headers.location);
+
+            // in case there is another problem
             } else {
                 console.log("something else received");
                 reject("RepositoryError");
@@ -231,20 +245,21 @@ var postTd = function (repositoryAddress, td) {
             console.error("Received Error");
             return reject(err);
         });
-        if (td_byte) {
-            req.write(td_byte.body);
-        }
+
+        // where the actual write is done
+        if (td_byte) { req.write(td_byte.body);}
         req.end();
     });
 }
 
+// this function does a simple PUT  request but it returns the proper error codes sent by the repository.
+// This is uncommented since it is the same as the previous request but there isnt an address being returned
 var updateTd = function (repositoryAddress, td) {
     return new Promise(function (resolve, reject) {
         var td_byte = node_wot_content_serdes_1.default.valueToBytes(td, "application/json");
         var options = uriToOptions(repositoryAddress);
         options.method = 'PUT';
         options.headers = { 'Content-Type': td_byte.mediaType, 'Content-Length': td_byte.body.byteLength };
-        console.log("HttpClient sending PUT to " + repositoryAddress);
         var req = http.request(options, function (res) {
             console.log("HttpClient received " + res.statusCode + " from " + repositoryAddress);
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
@@ -268,11 +283,12 @@ var updateTd = function (repositoryAddress, td) {
     });
 }
 
+// this function does a simple DELETE  request but it returns the proper error codes sent by the repository.
+// This is uncommented since it is the same as the previous request but there isnt an address being returned
 var deleteTd = function (uri) {
     return new Promise(function (resolve, reject) {
         var options = uriToOptions(uri);
         options.method = 'DELETE';
-        console.log("HttpClient sending DELETE to " + uri);
         var req = http.request(options, function (res) {
             console.log("HttpClient received " + res.statusCode + " from " + uri);
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
@@ -293,4 +309,8 @@ var deleteTd = function (uri) {
         req.on('error', function (err) { return reject(err); });
         req.end();
     });
+
+    var transformTdPublic = function(td,repositoryAddress){
+
+    }
 }
