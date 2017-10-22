@@ -1,0 +1,169 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "base": "http://localhost:9000/RegistryAgent",
+    "name": "RegistryAgent",
+    "interaction": [
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "directoryAddress",
+            "outputData": {
+                "type": "string",
+                "format": "url"
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "directoryAddress",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "gatewayAddress",
+            "outputData": {
+                "type": "string",
+                "format": "url"
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "gatewayAddress",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Property"
+            ],
+            "name": "publicDescriptions",
+            "outputData": {
+                "type": "array",
+                "items": [
+                    {
+                        "type": "object"
+                    }
+                ]
+            },
+            "writable": true,
+            "link": [
+                {
+                    "href": "publicDescriptions",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "makeMePublic",
+            "inputData": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "object"
+                    },
+                    "publicTime": {
+                        "type": "number",
+                        "minimum": 60,
+                        "default": 86400
+                    }
+                },
+                "required": [
+                    "description"
+                ],
+                "additionalProperties": false
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Created",
+                    "AlreadyExists",
+                    "DirectoryError",
+                    "RegistryAgentError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "makeMePublic",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "deleteMe",
+            "inputData": {
+                "type": "string"
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Deleted",
+                    "BadRequest",
+                    "DirectoryError",
+                    "NotPublic",
+                    "RegistryAgentError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "deleteMe",
+                    "mediaType": "application/json"
+                }
+            ]
+        },
+        {
+            "@type": [
+                "Action"
+            ],
+            "name": "updateMe",
+            "inputData": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "object"
+                    },
+                    "publicTime": {
+                        "type": "number",
+                        "minimum": 60,
+                        "default": 86400
+                    }
+                },
+                "required": [
+                    "description"
+                ],
+                "additionalProperties": false
+            },
+            "outputData": {
+                "type": "string",
+                "enum": [
+                    "Updated",
+                    "BadRequest",
+                    "DirectoryError",
+                    "NotPublic",
+                    "RegistryAgentError"
+                ]
+            },
+            "link": [
+                {
+                    "href": "updateMe",
+                    "mediaType": "application/json"
+                }
+            ]
+        }
+    ]
+}
