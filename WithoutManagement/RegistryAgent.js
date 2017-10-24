@@ -2,7 +2,7 @@ var TDParser = require("/home/eko/Code/node-wot/packages/node-wot-td-tools/dist/
 var servient_1 = require("/home/eko/Code/node-wot/packages/node-wot/dist/servient");
 var http_client_factory_1 = require("/home/eko/Code/node-wot/packages/node-wot-protocol-http/dist/http-client-factory");
 var http_server_1 = require("/home/eko/Code/node-wot/packages/node-wot-protocol-http/dist/http-server");
-var ContentSerdes_1 = "/home/eko/Code/node-wot/packages/node-wot/dist/content-serdes";
+var ContentSerdes_1 = require("/home/eko/Code/node-wot/packages/node-wot/dist/content-serdes");
 
 var http = require('http');
 var url = require('url');
@@ -13,6 +13,11 @@ var fs = require("fs");
 var tdName = "RegistryAgent";
 var directoryAddress = "http://localhost:8080";
 var gatewayAddress = "http://localhost:8081";
+const NAME_PROPERTY_DIRECTORY_ADDRESS = "directoryAddress";
+const NAME_PROPERTY_GATEWAY_ADDRESS = "gatewayAddress";
+const NAME_ACTION_MAKEMEPUBLIC = "makeMePublic";
+const NAME_ACTION_UPDATEME = "updateMe";
+const NAME_ACTION_DELETEME = "deleteMe";
 
 //getting the TD 
 var tdString = fs.readFileSync("./" + tdName + '.jsonld', "utf8");
@@ -24,90 +29,108 @@ srv.addServer(new http_server_1.default(9000));
 srv.addClientFactory(new http_client_factory_1.default());
 var WoT = srv.start();
 
-WoT.createFromDescription(td).then(function(registryAgent) {
 
+//WoT.createFromDescription(td).then(function(registryAgent) {
+WoT.expose({ name: tdName, url: "", description: td }).then(function(registryAgent) {
+    console.log("Created Thing called " + registryAgent.name);
+    registryAgent.addProperty({ name: NAME_PROPERTY_DIRECTORY_ADDRESS });
+    registryAgent.addProperty({ name: NAME_PROPERTY_GATEWAY_ADDRESS });
+    registryAgent.addAction({ name: NAME_ACTION_MAKEMEPUBLIC });
+    registryAgent.addAction({ name: NAME_ACTION_UPDATEME });
+    registryAgent.addAction({ name: NAME_ACTION_DELETEME });
     // setting directory address
-    registryAgent.setProperty("directoryAddress", directoryAddress);
-    registryAgent.onUpdateProperty("directoryAddress", function(oldAddress, newAddress) {
-        directoryAddress = newAddress;
+    registryAgent.setProperty(NAME_PROPERTY_DIRECTORY_ADDRESS, directoryAddress);
+    registryAgent.onUpdateProperty({
+        "request": { name: NAME_PROPERTY_DIRECTORY_ADDRESS },
+        "callback": function(oldAddress, newAddress) {
+            directoryAddress = newAddress;
+        }
     });
 
-    registryAgent.onUpdateProperty("gatewayAddress", function(oldAddress, newAddress) {
-        gatewayAddress = newAddress;
+    registryAgent.onUpdateProperty({
+        "request": { name: NAME_PROPERTY_GATEWAY_ADDRESS },
+        "callback": function(oldAddress, newAddress) {
+            gatewayAddress = newAddress;
+        }
     });
 
     //handling action to make a TD online
-    registryAgent.onInvokeAction("makeMePublic", function(inputData) {
-        return new Promise(function(resolve, reject) {
-            // inputData has the TD, getting it
-            var td = inputData["description"];
-            var lifetime = 86400;
-            try {
-                lifetime = inputData["publicTime"];
-            } catch {
-                //do nothing
-            }
+    registryAgent.onInvokeAction({
+        "request": { name: NAME_ACTION_MAKEMEPUBLIC },
+        "callback": function(inputData) {
+            return new Promise(function(resolve, reject) {
+                // inputData has the TD, getting it
+                var td = inputData["description"];
+                var lifetime = 86400;
 
-            // posting the TD to directory address
-            var address = directoryAddress + "/td";
+                if (inputData["publicTime"] !== undefined) {
+                    lifetime = inputData["publicTime"];
+                }
 
-            // change its IP addresses that were local with the IP of the repo
-            td = transformTdPublic(td, gatewayAddress);
+                // posting the TD to directory address
+                var address = directoryAddress + "/td";
 
-            postTd(address + "?lt=" + lifetime, td).then(function(location) {
+                // change its IP addresses that were local with the IP of the repo
+                td = transformTdPublic(td, gatewayAddress);
 
-                // get the id assigned by the repo
-                // this value is given in the header of the response
-                var outputData = { "status": "Created", "location": location }
-                resolve(outputData);
+                postTd(address + "?lt=" + lifetime, td).then(function(location) {
 
-            }).catch(function(error) {
-                console.log("Couldnt post TD to repo, ", error)
-                var outputData = { "status": error }
-                resolve(outputData);
-            });
-        })
+                    // get the id assigned by the repo
+                    // this value is given in the header of the response
+                    var outputData = { "status": "Created", "location": location }
+                    resolve(outputData);
+
+                }).catch(function(error) {
+                    console.log("Couldnt post TD to repo, ", error)
+                    var outputData = { "status": error }
+                    resolve(outputData);
+                });
+            })
+        }
     });
 
 
     //handling action to update an online TD with a local one
-    registryAgent.onInvokeAction("updateMe", function(inputData) {
-        return new Promise(function(resolve, reject) {
-            var td = inputData["description"];
-            var descriptionId = inputData["descriptionId"];
-            var lifetime = 86400;
-            try {
-                lifetime = inputData["publicTime"];
-            } catch {
-                //do nothing
-            }
-            // put its TD in the repo
-            // change its IP addresses that were local with the IP of the repo
-            td = transformTdPublic(td, gatewayAddress);
+    registryAgent.onInvokeAction({
+        "request": { name: NAME_ACTION_UPDATEME },
+        "callback": function(inputData) {
+            return new Promise(function(resolve, reject) {
+                var td = inputData["description"];
+                var descriptionId = inputData["descriptionId"];
+                var lifetime = 86400;
+                if (inputData["publicTime"] !== undefined) {
+                    lifetime = inputData["publicTime"];
+                }
+                // put its TD in the repo
+                // change its IP addresses that were local with the IP of the repo
+                td = transformTdPublic(td, gatewayAddress);
 
-            // put the new TD in the directory
-            updateTd(directoryAddress + "/td/" + descriptionId + "?lt=" + lifetime, td).then(function(res) {
-                console.log("Update Succesful");
-                resolve("Updated")
-            }).catch(function(err) {
-                console.log("Update NOT Succesful, error code ", err);
-                resolve(err);
+                // put the new TD in the directory
+                updateTd(directoryAddress + descriptionId + "?lt=" + lifetime, td).then(function(res) {
+                    console.log("Update Succesful");
+                    resolve("Updated")
+                }).catch(function(err) {
+                    console.log("Update NOT Succesful, error code ", err);
+                    resolve(err);
+                });
+
             });
-
-        });
+        }
     });
 
-    registryAgent.onInvokeAction("deleteMe", function(descriptionId) {
-        return new Promise(function(resolve, reject) {
-            var descriptionId = inputData["descriptionId"];
-            deleteTd(directoryAddress + "/td/" + descriptionId).then(function(res) {
-                resolve("Deleted");
-            }).catch(function(err) {
-                console.log("Delete NOT Succesful, error code ", err);
-                resolve(err);
-            });
+    registryAgent.onInvokeAction({
+        "request": { name: NAME_ACTION_DELETEME },
+        "callback": function(descriptionId) {
+            return new Promise(function(resolve, reject) {
+                deleteTd(directoryAddress + descriptionId).then(function(res) {
+                    resolve("Deleted");
+                }).catch(function(err) {
+                    console.log("Delete NOT Succesful, error code ", err);
+                    resolve(err);
+                });
 
-        });
+            });
+        }
     });
 });
 
@@ -127,7 +150,7 @@ var uriToOptions = function(uri) {
 var postTd = function(directoryAddress, td) {
     return new Promise(function(resolve, reject) {
         // convert the TD to bytes
-        var td_byte = node_wot_content_serdes_1.default.valueToBytes(td, "application/json");
+        var td_byte = ContentSerdes_1.default.valueToBytes(td, "application/json");
 
         // parse the uri
         var options = uriToOptions(directoryAddress);
@@ -142,17 +165,17 @@ var postTd = function(directoryAddress, td) {
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
 
             // 500 return code means the directory had a problem in itself, there is nothing wrong with our request
-            if (res.statusCode == 500) {
+            if (res.statusCode >= 500) {
                 console.log("Rejecting with 500");
                 reject("DirectoryError");
 
                 // 400 return code means the request was poorly written. This can be because of invalid TD, an already existing TD or bad uri
-            } else if (res.statusCode == 400) {
+            } else if (res.statusCode >= 400 && res.statusCode < 500) {
                 console.log("Rejecting with 400");
                 reject("BadRequest");
 
                 // 201 is a succesful request
-            } else if (res.statusCode == 201) {
+            } else if (res.statusCode >= 200 && res.statusCode < 300) {
                 console.log("Resolving with 201");
                 resolve(res.headers.location);
 
@@ -178,20 +201,20 @@ var postTd = function(directoryAddress, td) {
 // This is uncommented since it is the same as the previous request but there isnt an address being returned
 var updateTd = function(directoryAddress, td) {
     return new Promise(function(resolve, reject) {
-        var td_byte = node_wot_content_serdes_1.default.valueToBytes(td, "application/json");
+        var td_byte = ContentSerdes_1.default.valueToBytes(td, "application/json");
         var options = uriToOptions(directoryAddress);
         options.method = 'PUT';
         options.headers = { 'Content-Type': td_byte.mediaType, 'Content-Length': td_byte.body.byteLength };
         var req = http.request(options, function(res) {
             console.log("HttpClient received " + res.statusCode + " from " + directoryAddress);
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
-            if (res.statusCode == 500) {
+            if (res.statusCode >= 500) {
                 console.log("Rejecting with 500");
                 reject("DirectoryError");
-            } else if (res.statusCode == 400) {
+            } else if (res.statusCode >= 400 && res.statusCode < 500) {
                 console.log("Rejecting with 400");
                 reject("BadRequest");
-            } else if (res.statusCode == 200) {
+            } else if (res.statusCode >= 200 && res.statusCode < 300) {
                 console.log("resolving with 200");
                 resolve("Updated");
             } else {
@@ -214,13 +237,13 @@ var deleteTd = function(uri) {
         var req = http.request(options, function(res) {
             console.log("HttpClient received " + res.statusCode + " from " + uri);
             console.log("HttpClient received headers: " + JSON.stringify(res.headers));
-            if (res.statusCode == 500) {
+            if (res.statusCode >= 500) {
                 console.log("Rejecting with 500");
                 reject("DirectoryError");
-            } else if (res.statusCode == 400) {
+            } else if (res.statusCode >= 400 && res.statusCode < 500) {
                 console.log("Rejecting with 400");
                 reject("BadRequest");
-            } else if (res.statusCode == 200) {
+            } else if (res.statusCode >= 200 && res.statusCode < 300) {
                 console.log("resolving with 200");
                 resolve("Updated");
             } else {

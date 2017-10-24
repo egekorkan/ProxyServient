@@ -5,7 +5,7 @@
     "@type": [
         "Thing"
     ],
-    "base": "http://localhost:9002/",
+    "base": "http://localhost:9002/MyArrayThing",
     "name": "MyArrayThing",
     "interaction": [
         {

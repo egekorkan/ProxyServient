@@ -10,7 +10,7 @@ var TDParser = require("**/home/eko/Code**/node-wot/packages/node-wot-td-tools/d
 var servient_1 = require("**/home/eko/Code**/node-wot/packages/node-wot/dist/servient");
 var http_client_factory_1 = require("**/home/eko/Code**/node-wot/packages/node-wot-protocol-http/dist/http-client-factory");
 var http_server_1 = require("**/home/eko/Code**/node-wot/packages/node-wot-protocol-http/dist/http-server");
-var ContentSerdes_1 = "**/home/eko/Code**/node-wot/packages/node-wot/dist/content-serdes";
+var ContentSerdes_1 = require("**/home/eko/Code**/node-wot/packages/node-wot/dist/content-serdes");
 
 This will allow the RegistryAgent to run properly but if you need to run also the Thing Description directory you can install it [here](https://github.com/thingweb/thingweb-directory).
 
@@ -47,6 +47,8 @@ Send the TD by executing the action *makeMePublic*. You have to send the TD with
 If you want to modify the same TD, you can use the *updateMe* action and send the new TD and the id that was returned by the *makeMePublic* request. You can also send the time the TD should be public. This is done with the *publicTime* by writing the time in seconds. It defaults to 24 hours if not sent and the client has to take this time into account for further requests.
 
 You can delete a TD by sending the id using the *deleteMe* action.
+
+In *makeMePublic* action the description Id returned in output data will have */td/* in the beginning. This should be kept when using the id in *updateMe* and *deleteMe* actions.
 
 # With Management
 
@@ -88,7 +90,5 @@ If another client modifies the Thing Directory (deleting your TD for example), y
 ## TO DOs
 
 Add CoAP functionality
-
-Lifetime of a TD
 
 ?? Check if the gateway and Thing have the same protocols => This is because if we put a gateway address with CoAP to a Thing that doesn't support CoAP, we have problems!

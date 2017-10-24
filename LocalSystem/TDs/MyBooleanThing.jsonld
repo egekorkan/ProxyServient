@@ -5,7 +5,7 @@
     "@type": [
         "Thing"
     ],
-    "base": "http://localhost:9004/",
+    "base": "http://localhost:9004/MyBooleanThing",
     "name": "MyBooleanThing",
     "interaction": [
         {
