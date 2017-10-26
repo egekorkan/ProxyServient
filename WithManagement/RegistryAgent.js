@@ -10,7 +10,7 @@ var fs = require("fs");
 
 
 //some constants
-var tdName = "RegistryAgent";
+var tdName = "RegistrationAgent";
 var directoryAddress = "http://localhost:8080";
 var gatewayAddress = "http://localhost:8081";
 var repoIds = []; // tdname and its associated id
@@ -204,7 +204,7 @@ var postTd = function(directoryAddress, td) {
         });
         req.on('error', function(err) {
             console.error("Received Error");
-            return reject("RegistryAgentError");
+            return reject("RegistrationAgentError");
         });
 
         // where the actual write is done
@@ -238,7 +238,7 @@ var updateTd = function(directoryAddress, td) {
                 reject("DirectoryError");
             }
         });
-        req.on('error', function(err) { return reject("RegistryAgentError"); });
+        req.on('error', function(err) { return reject("RegistrationAgentError"); });
         req.write(td_byte.body);
         req.end();
     });
@@ -267,7 +267,7 @@ var deleteTd = function(uri) {
                 reject("DirectoryError");
             }
         });
-        req.on('error', function(err) { return reject("RegistryAgentError"); });
+        req.on('error', function(err) { return reject("RegistrationAgentError"); });
         req.end();
     });
 }

@@ -5,8 +5,8 @@
     "@type": [
         "Thing"
     ],
-    "base": "http://localhost:9000/RegistryAgent",
-    "name": "RegistryAgent",
+    "base": "http://localhost:9000/RegistrationAgent",
+    "name": "RegistrationAgent",
     "interaction": [
         {
             "@type": [
@@ -91,7 +91,7 @@
                     "Created",
                     "AlreadyExists",
                     "DirectoryError",
-                    "RegistryAgentError"
+                    "RegistrationAgentError"
                 ]
             },
             "link": [
@@ -116,7 +116,7 @@
                     "BadRequest",
                     "DirectoryError",
                     "NotPublic",
-                    "RegistryAgentError"
+                    "RegistrationAgentError"
                 ]
             },
             "link": [
@@ -155,7 +155,7 @@
                     "BadRequest",
                     "DirectoryError",
                     "NotPublic",
-                    "RegistryAgentError"
+                    "RegistrationAgentError"
                 ]
             },
             "link": [

@@ -2,9 +2,9 @@ This servient makes a WoT Thing's Thing Description online, in a Thing Directory
 
 ## Installation Requirements:
 
-You need to install [node-wot](https://github.com/thingweb/node-wot) in order to run the RegistryAgent. 
+You need to install [node-wot](https://github.com/thingweb/node-wot) in order to run the RegistrationAgent. 
 
-Then open RegistryAgent.js in WithoutManagement and WithManagement folders and modify the module imports according to the installation location of your node-wot. These are found in the very beginning and marked in bold below:
+Then open RegistrationAgent.js in WithoutManagement and WithManagement folders and modify the module imports according to the installation location of your node-wot. These are found in the very beginning and marked in bold below:
 
 var TDParser = require("**/home/eko/Code**/node-wot/packages/node-wot-td-tools/dist/td-parser");
 var servient_1 = require("**/home/eko/Code**/node-wot/packages/node-wot/dist/servient");
@@ -12,31 +12,31 @@ var http_client_factory_1 = require("**/home/eko/Code**/node-wot/packages/node-w
 var http_server_1 = require("**/home/eko/Code**/node-wot/packages/node-wot-protocol-http/dist/http-server");
 var ContentSerdes_1 = require("**/home/eko/Code**/node-wot/packages/node-wot/dist/content-serdes");
 
-This will allow the RegistryAgent to run properly but if you need to run also the Thing Description directory you can install it [here](https://github.com/thingweb/thingweb-directory).
+This will allow the RegistrationAgent to run properly but if you need to run also the Thing Description directory you can install it [here](https://github.com/thingweb/thingweb-directory).
 
-You can also read their readme to understand how the RegistryAgent works internally.
+You can also read their readme to understand how the RegistrationAgent works internally.
 
 ## Two Modes of Operation
 
-There are two different Registry Agents in folders WithoutManagement and WithManagement. 
+There are two different Registration Agents in folders WithoutManagement and WithManagement. 
 
 WithoutManagement gives the Thing client the control over all the relevant information being sent and received to the Thing Directory. For example, upon registration of the Thing Description the id number will be forwarded to the client and the client has to manage this id number itself for the future requests.
 
-WithManagement is seen simpler from the outside. The client only get status messages and never has to worry about the id numbers. *IMPORTANT* This requires more management from the RegistryAgent and the lifetime management is not properly implemented at the moment.
+WithManagement is seen simpler from the outside. The client only get status messages and never has to worry about the id numbers. *IMPORTANT* This requires more management from the RegistrationAgent and the lifetime management is not properly implemented at the moment.
 
 # Without Management
 
-## Running RegistryAgent
+## Running RegistrationAgent
 
-To run: Go to folder `WithoutManagement` and run `node RegistryAgent.js`
+To run: Go to folder `WithoutManagement` and run `node RegistrationAgent.js`
 
-After this the RegistryAgent should be running.
+After this the RegistrationAgent should be running.
 
-## Using RegistryAgent
+## Using RegistrationAgent
 
-*The variable types to use are given by the Thing Description of the RegistryAgent in RegistryAgent.jsonld*
+*The variable types to use are given by the Thing Description of the RegistrationAgent in RegistrationAgent.jsonld*
 
-RegistryAgent uses the actions and properties as defined by WoT. Currently there are 3 actions and 2 properties to interact with.
+RegistrationAgent uses the actions and properties as defined by WoT. Currently there are 3 actions and 2 properties to interact with.
 
 The Thing Directory's address should be written into the *directoryAddress* property. It defaults to localhost port 8080 with http protocol. 
 
@@ -52,17 +52,17 @@ In *makeMePublic* action the description Id returned in output data will have */
 
 # With Management
 
-## Running RegistryAgent
+## Running RegistrationAgent
 
-To run: Go to folder `WithManagement` and run `node RegistryAgent.js`
+To run: Go to folder `WithManagement` and run `node RegistrationAgent.js`
 
-After this the RegistryAgent should be running.
+After this the RegistrationAgent should be running.
 
-## Using RegistryAgent
+## Using RegistrationAgent
 
-*The variable types to use are given by the Thing Description of the RegistryAgent in RegistryAgent.jsonld*
+*The variable types to use are given by the Thing Description of the RegistrationAgent in RegistrationAgent.jsonld*
 
-RegistryAgent uses the actions and properties as defined by WoT. Currently there are 3 actions and 3 properties to interact with.
+RegistrationAgent uses the actions and properties as defined by WoT. Currently there are 3 actions and 3 properties to interact with.
 
 The Thing Directory's address should be written into the *directoryAddress* property. It defaults to localhost port 8080 with http protocol. 
 

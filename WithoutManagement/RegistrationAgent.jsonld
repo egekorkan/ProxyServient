@@ -5,8 +5,8 @@
   "@type": [
     "Thing"
   ],
-  "base": "http://localhost:9000/RegistryAgent",
-  "name": "RegistryAgent",
+  "base": "http://localhost:9000/RegistrationAgent",
+  "name": "RegistrationAgent",
   "interaction": [
     {
       "@type": [
@@ -72,7 +72,7 @@
             "enum": [
               "Created",
               "DirectoryError",
-              "RegistryAgentError"
+              "RegistrationAgentError"
             ]
           },
           "location": {
@@ -106,7 +106,7 @@
           "BadRequest",
           "DirectoryError",
           "NotPublic",
-          "RegistryAgentError"
+          "RegistrationAgentError"
         ]
       },
       "link": [
@@ -149,7 +149,7 @@
           "BadRequest",
           "DirectoryError",
           "NotPublic",
-          "RegistryAgentError"
+          "RegistrationAgentError"
         ]
       },
       "link": [

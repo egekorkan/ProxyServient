@@ -10,7 +10,7 @@ var fs = require("fs");
 
 
 //some constants
-var tdName = "RegistryAgent";
+var tdName = "RegistrationAgent";
 var directoryAddress = "http://localhost:8080";
 var gatewayAddress = "http://localhost:8081";
 const NAME_PROPERTY_DIRECTORY_ADDRESS = "directoryAddress";
@@ -23,31 +23,31 @@ const NAME_ACTION_DELETEME = "deleteMe";
 var tdString = fs.readFileSync("./" + tdName + '.jsonld', "utf8");
 var td = TDParser.parseTDString(tdString);
 
-//starting the registryAgent
+//starting the registrationAgent
 var srv = new servient_1.default();
 srv.addServer(new http_server_1.default(9000));
 srv.addClientFactory(new http_client_factory_1.default());
 var WoT = srv.start();
 
 
-//WoT.createFromDescription(td).then(function(registryAgent) {
-WoT.expose({ name: tdName, url: "", description: td }).then(function(registryAgent) {
-    console.log("Created Thing called " + registryAgent.name);
-    registryAgent.addProperty({ name: NAME_PROPERTY_DIRECTORY_ADDRESS });
-    registryAgent.addProperty({ name: NAME_PROPERTY_GATEWAY_ADDRESS });
-    registryAgent.addAction({ name: NAME_ACTION_MAKEMEPUBLIC });
-    registryAgent.addAction({ name: NAME_ACTION_UPDATEME });
-    registryAgent.addAction({ name: NAME_ACTION_DELETEME });
+//WoT.createFromDescription(td).then(function(registrationAgent) {
+WoT.expose({ name: tdName, url: "", description: td }).then(function(registrationAgent) {
+    console.log("Created Thing called " + registrationAgent.name);
+    registrationAgent.addProperty({ name: NAME_PROPERTY_DIRECTORY_ADDRESS });
+    registrationAgent.addProperty({ name: NAME_PROPERTY_GATEWAY_ADDRESS });
+    registrationAgent.addAction({ name: NAME_ACTION_MAKEMEPUBLIC });
+    registrationAgent.addAction({ name: NAME_ACTION_UPDATEME });
+    registrationAgent.addAction({ name: NAME_ACTION_DELETEME });
     // setting directory address
-    registryAgent.setProperty(NAME_PROPERTY_DIRECTORY_ADDRESS, directoryAddress);
-    registryAgent.onUpdateProperty({
+    registrationAgent.setProperty(NAME_PROPERTY_DIRECTORY_ADDRESS, directoryAddress);
+    registrationAgent.onUpdateProperty({
         "request": { name: NAME_PROPERTY_DIRECTORY_ADDRESS },
         "callback": function(oldAddress, newAddress) {
             directoryAddress = newAddress;
         }
     });
 
-    registryAgent.onUpdateProperty({
+    registrationAgent.onUpdateProperty({
         "request": { name: NAME_PROPERTY_GATEWAY_ADDRESS },
         "callback": function(oldAddress, newAddress) {
             gatewayAddress = newAddress;
@@ -55,7 +55,7 @@ WoT.expose({ name: tdName, url: "", description: td }).then(function(registryAge
     });
 
     //handling action to make a TD online
-    registryAgent.onInvokeAction({
+    registrationAgent.onInvokeAction({
         "request": { name: NAME_ACTION_MAKEMEPUBLIC },
         "callback": function(inputData) {
             return new Promise(function(resolve, reject) {
@@ -91,7 +91,7 @@ WoT.expose({ name: tdName, url: "", description: td }).then(function(registryAge
 
 
     //handling action to update an online TD with a local one
-    registryAgent.onInvokeAction({
+    registrationAgent.onInvokeAction({
         "request": { name: NAME_ACTION_UPDATEME },
         "callback": function(inputData) {
             return new Promise(function(resolve, reject) {
@@ -118,7 +118,7 @@ WoT.expose({ name: tdName, url: "", description: td }).then(function(registryAge
         }
     });
 
-    registryAgent.onInvokeAction({
+    registrationAgent.onInvokeAction({
         "request": { name: NAME_ACTION_DELETEME },
         "callback": function(descriptionId) {
             return new Promise(function(resolve, reject) {
@@ -188,7 +188,7 @@ var postTd = function(directoryAddress, td) {
         });
         req.on('error', function(err) {
             console.error("Received Error");
-            return reject("RegistryAgentError");
+            return reject("RegistrationAgentError");
         });
 
         // where the actual write is done
@@ -222,7 +222,7 @@ var updateTd = function(directoryAddress, td) {
                 reject("DirectoryError");
             }
         });
-        req.on('error', function(err) { return reject("RegistryAgentError"); });
+        req.on('error', function(err) { return reject("RegistrationAgentError"); });
         req.write(td_byte.body);
         req.end();
     });
@@ -251,7 +251,7 @@ var deleteTd = function(uri) {
                 reject("DirectoryError");
             }
         });
-        req.on('error', function(err) { return reject("RegistryAgentError"); });
+        req.on('error', function(err) { return reject("RegistrationAgentError"); });
         req.end();
     });
 }
